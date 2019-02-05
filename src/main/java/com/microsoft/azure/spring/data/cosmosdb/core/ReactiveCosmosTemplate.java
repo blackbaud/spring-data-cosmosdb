@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.data.auditing.IsNewAwareAuditingHandler;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -55,6 +56,7 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     private final CosmosClient cosmosClient;
     private final ResponseDiagnosticsProcessor responseDiagnosticsProcessor;
     private final boolean isPopulateQueryMetrics;
+    private IsNewAwareAuditingHandler cosmosAuditingHandler;
 
     private Function<Class<?>, CosmosEntityInformation<?, ?>> entityInfoCreator =
         Memoizer.memoize(this::getCosmosEntityInformation);
@@ -70,17 +72,25 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
      */
     public ReactiveCosmosTemplate(CosmosDbFactory cosmosDbFactory,
                                   MappingCosmosConverter mappingCosmosConverter,
+                                  IsNewAwareAuditingHandler cosmosAuditingHandler,
                                   String dbName) {
         Assert.notNull(cosmosDbFactory, "CosmosDbFactory must not be null!");
         Assert.notNull(mappingCosmosConverter, "MappingCosmosConverter must not be null!");
 
         this.mappingCosmosConverter = mappingCosmosConverter;
+        this.cosmosAuditingHandler = cosmosAuditingHandler;
         this.databaseName = dbName;
         this.containerNameCache = new ArrayList<>();
 
         this.cosmosClient = cosmosDbFactory.getCosmosClient();
         this.responseDiagnosticsProcessor = cosmosDbFactory.getConfig().getResponseDiagnosticsProcessor();
         this.isPopulateQueryMetrics = cosmosDbFactory.getConfig().isPopulateQueryMetrics();
+    }
+
+    public ReactiveCosmosTemplate(CosmosDbFactory cosmosDbFactory,
+                                  MappingCosmosConverter mappingCosmosConverter,
+                                  String dbName) {
+        this(cosmosDbFactory, mappingCosmosConverter, null, dbName);
     }
 
     /**
@@ -288,6 +298,11 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
         Assert.notNull(objectToSave, "objectToSave should not be null");
 
         final Class<T> domainType = (Class<T>) objectToSave.getClass();
+
+        if (cosmosAuditingHandler != null) {
+            cosmosAuditingHandler.markAudited(objectToSave);
+        }
+
         final CosmosItemProperties originalItem = mappingCosmosConverter.writeCosmosItemProperties(objectToSave);
         return cosmosClient.getDatabase(this.databaseName)
                            .getContainer(getContainerName(objectToSave.getClass()))
@@ -354,6 +369,11 @@ public class ReactiveCosmosTemplate implements ReactiveCosmosOperations, Applica
     @Override
     public <T> Mono<T> upsert(String containerName, T object, PartitionKey partitionKey) {
         final Class<T> domainType = (Class<T>) object.getClass();
+
+        if (cosmosAuditingHandler != null) {
+            cosmosAuditingHandler.markAudited(object);
+        }
+
         final CosmosItemProperties originalItem = mappingCosmosConverter.writeCosmosItemProperties(object);
         final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
         if (partitionKey != null) {
