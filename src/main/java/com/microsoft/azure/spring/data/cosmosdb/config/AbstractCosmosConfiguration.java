@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.auditing.IsNewAwareAuditingHandler;
 
 @Configuration
 public abstract class AbstractCosmosConfiguration extends CosmosConfigurationSupport {
@@ -36,6 +37,10 @@ public abstract class AbstractCosmosConfiguration extends CosmosConfigurationSup
     @Autowired(required = false)
     private ObjectMapper objectMapper;
 
+    @Qualifier(Constants.AUDITING_HANDLER_BEAN_NAME)
+    @Autowired(required = false)
+    private IsNewAwareAuditingHandler cosmosAuditingHandler;
+
     @Bean
     public CosmosDbFactory cosmosDbFactory(CosmosDBConfig config) {
         return new CosmosDbFactory(config);
@@ -44,7 +49,7 @@ public abstract class AbstractCosmosConfiguration extends CosmosConfigurationSup
     @Bean
     public CosmosTemplate cosmosTemplate(CosmosDBConfig config) throws ClassNotFoundException {
         return new CosmosTemplate(this.cosmosDbFactory(config), this.mappingCosmosConverter(),
-                config.getDatabase());
+                cosmosAuditingHandler, config.getDatabase());
     }
 
     @Bean

@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.data.auditing.IsNewAwareAuditingHandler;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
@@ -58,6 +59,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
     private static final String COUNT_VALUE_KEY = "_aggregate";
 
     private final MappingCosmosConverter mappingCosmosConverter;
+    private final IsNewAwareAuditingHandler cosmosAuditingHandler;
     private final String databaseName;
     private final ResponseDiagnosticsProcessor responseDiagnosticsProcessor;
     private final boolean isPopulateQueryMetrics;
@@ -69,10 +71,18 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
     public CosmosTemplate(CosmosDbFactory cosmosDbFactory,
                           MappingCosmosConverter mappingCosmosConverter,
                           String dbName) {
+        this(cosmosDbFactory, mappingCosmosConverter, null, dbName);
+    }
+
+    public CosmosTemplate(CosmosDbFactory cosmosDbFactory,
+                          MappingCosmosConverter mappingCosmosConverter,
+                          IsNewAwareAuditingHandler cosmosAuditingHandler,
+                          String dbName) {
         Assert.notNull(cosmosDbFactory, "CosmosDbFactory must not be null!");
         Assert.notNull(mappingCosmosConverter, "MappingCosmosConverter must not be null!");
 
         this.mappingCosmosConverter = mappingCosmosConverter;
+        this.cosmosAuditingHandler = cosmosAuditingHandler;
 
         this.databaseName = dbName;
         this.cosmosClient = cosmosDbFactory.getCosmosClient();
@@ -81,6 +91,13 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
     }
 
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    }
+
+    private CosmosItemProperties prepareToPersistAndConvertToItemProperties(Object object) {
+        if (cosmosAuditingHandler != null) {
+            cosmosAuditingHandler.markAudited(object);
+        }
+        return mappingCosmosConverter.writeCosmosItemProperties(object);
     }
 
     public <T> T insert(T objectToSave, PartitionKey partitionKey) {
@@ -93,7 +110,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         Assert.hasText(containerName, "containerName should not be null, empty or only whitespaces");
         Assert.notNull(objectToSave, "objectToSave should not be null");
 
-        final CosmosItemProperties originalItem = mappingCosmosConverter.writeCosmosItemProperties(objectToSave);
+        final CosmosItemProperties originalItem = prepareToPersistAndConvertToItemProperties(objectToSave);
 
         log.debug("execute createItem in database {} container {}", this.databaseName, containerName);
 
@@ -187,7 +204,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         Assert.hasText(containerName, "containerName should not be null, empty or only whitespaces");
         Assert.notNull(object, "Upsert object should not be null");
 
-        final CosmosItemProperties originalItem = mappingCosmosConverter.writeCosmosItemProperties(object);
+        final CosmosItemProperties originalItem = prepareToPersistAndConvertToItemProperties(object);
 
         log.debug("execute upsert item in database {} container {}", this.databaseName, containerName);
 
