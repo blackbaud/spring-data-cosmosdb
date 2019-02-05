@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.auditing.IsNewAwareAuditingHandler;
 
 @Configuration
 public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigurationSupport {
@@ -30,6 +31,10 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
     @Autowired(required = false)
     private ObjectMapper objectMapper;
 
+    @Qualifier(Constants.AUDITING_HANDLER_BEAN_NAME)
+    @Autowired(required = false)
+    private IsNewAwareAuditingHandler cosmosAuditingHandler;
+
     @Bean
     public DocumentDbFactory documentDbFactory() {
         return new DocumentDbFactory(this.getConfig());
@@ -39,7 +44,7 @@ public abstract class AbstractDocumentDbConfiguration extends DocumentDbConfigur
     public DocumentDbTemplate documentDbTemplate() throws ClassNotFoundException {
         final DocumentDBConfig config = getConfig();
         return new DocumentDbTemplate(this.documentDbFactory(), this.mappingDocumentDbConverter(),
-                config.getDatabase());
+                cosmosAuditingHandler, config.getDatabase());
     }
 
     @Bean

@@ -28,6 +28,7 @@ public class Constants {
     public static final String USER_AGENT_SUFFIX = "spring-data/";
 
     public static final String OBJECTMAPPER_BEAN_NAME = "cosmosdbObjectMapper";
+    public static final String AUDITING_HANDLER_BEAN_NAME = "cosmosAuditingHandler";
 
     public static final String ISO_8601_COMPATIBLE_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:s:SSSXXX";
 }

@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.data.auditing.IsNewAwareAuditingHandler;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -52,10 +53,18 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
     private final String databaseName;
 
     private Database databaseCache;
+    private IsNewAwareAuditingHandler cosmosAuditingHandler;
     private List<String> collectionCache;
 
     public DocumentDbTemplate(DocumentDbFactory documentDbFactory,
                               MappingDocumentDbConverter mappingDocumentDbConverter,
+                              String dbName) {
+        this(documentDbFactory, mappingDocumentDbConverter, null, dbName);
+    }
+
+    public DocumentDbTemplate(DocumentDbFactory documentDbFactory,
+                              MappingDocumentDbConverter mappingDocumentDbConverter,
+                              IsNewAwareAuditingHandler cosmosAuditingHandler,
                               String dbName) {
         Assert.notNull(documentDbFactory, "DocumentDbFactory must not be null!");
         Assert.notNull(mappingDocumentDbConverter, "MappingDocumentDbConverter must not be null!");
@@ -64,10 +73,18 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         this.documentDbFactory = documentDbFactory;
         this.documentClient = this.documentDbFactory.getDocumentClient();
         this.mappingDocumentDbConverter = mappingDocumentDbConverter;
+        this.cosmosAuditingHandler = cosmosAuditingHandler;
         this.collectionCache = new ArrayList<>();
     }
 
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    }
+
+    private Document prepareToPersistAndConvertToDocument(Object object) {
+        if (cosmosAuditingHandler != null) {
+            cosmosAuditingHandler.markAudited(object);
+        }
+        return mappingDocumentDbConverter.writeDoc(object);
     }
 
     public <T> T insert(T objectToSave, PartitionKey partitionKey) {
@@ -80,7 +97,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         Assert.notNull(objectToSave, "objectToSave should not be null");
 
-        final Document document = mappingDocumentDbConverter.writeDoc(objectToSave);
+        final Document document = prepareToPersistAndConvertToDocument(objectToSave);
 
         log.debug("execute createDocument in database {} collection {}", this.databaseName, collectionName);
 
@@ -159,7 +176,7 @@ public class DocumentDbTemplate implements DocumentDbOperations, ApplicationCont
             if (object instanceof Document) {
                 originalDoc = (Document) object;
             } else {
-                originalDoc = mappingDocumentDbConverter.writeDoc(object);
+                originalDoc = prepareToPersistAndConvertToDocument(object);
             }
 
             log.debug("execute upsert document in database {} collection {}", this.databaseName, collectionName);
