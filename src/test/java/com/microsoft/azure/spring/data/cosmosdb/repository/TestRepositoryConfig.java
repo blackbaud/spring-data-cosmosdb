@@ -14,6 +14,7 @@ import com.microsoft.azure.spring.data.cosmosdb.config.AbstractCosmosConfigurati
 import com.microsoft.azure.spring.data.cosmosdb.config.CosmosDBConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableCosmosRepositories;
 import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableReactiveCosmosRepositories;
+import com.microsoft.azure.spring.data.cosmosdb.config.EnableCosmosAuditing;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,7 @@ import org.springframework.util.StringUtils;
 @PropertySource(value = {"classpath:application.properties"})
 @EnableCosmosRepositories
 @EnableReactiveCosmosRepositories
+@EnableCosmosAuditing(dateTimeProviderRef = "auditingDateTimeProvider")
 public class TestRepositoryConfig extends AbstractCosmosConfiguration {
     @Value("${cosmosdb.uri:}")
     private String cosmosDbUri;
@@ -76,4 +78,15 @@ public class TestRepositoryConfig extends AbstractCosmosConfiguration {
     public DynamicContainer dynamicContainer() {
         return new DynamicContainer(TestConstants.DYNAMIC_BEAN_COLLECTION_NAME);
     }
+
+    @Bean(name = "auditingDateTimeProvider")
+    public StubDateTimeProvider stubDateTimeProvider() {
+        return new StubDateTimeProvider();
+    }
+
+    @Bean
+    public StubAuditorProvider auditorProvider() {
+        return new StubAuditorProvider();
+    }
+
 }
