@@ -6,6 +6,7 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.CosmosTemplate;
+import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.PersonRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,16 +15,21 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CosmosRepositoryFactoryBeanUnitTest {
     @Mock
     CosmosTemplate dbTemplate;
+    @Mock
+    MappingCosmosConverter converter;
 
     @Test
     public void testCreateRepositoryFactory() {
+        when(dbTemplate.getConverter()).thenReturn(converter);
         final CosmosRepositoryFactoryBean factoryBean =
                 new CosmosRepositoryFactoryBean(PersonRepository.class);
+        factoryBean.setCosmosOperations(dbTemplate);
         final RepositoryFactorySupport factory = factoryBean.createRepositoryFactory();
         assertThat(factory).isNotNull();
     }
