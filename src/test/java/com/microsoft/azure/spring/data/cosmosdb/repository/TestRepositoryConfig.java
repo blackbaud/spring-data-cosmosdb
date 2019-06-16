@@ -10,14 +10,17 @@ import com.microsoft.azure.documentdb.RequestOptions;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.AbstractDocumentDbConfiguration;
 import com.microsoft.azure.spring.data.cosmosdb.config.DocumentDBConfig;
+import com.microsoft.azure.spring.data.cosmosdb.config.EnableCosmosAuditing;
 import com.microsoft.azure.spring.data.cosmosdb.repository.config.EnableDocumentDbRepositories;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.util.StringUtils;
 
 @Configuration
 @PropertySource(value = {"classpath:application.properties"})
+@EnableCosmosAuditing(dateTimeProviderRef = "auditingDateTimeProvider")
 @EnableDocumentDbRepositories
 public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
     @Value("${cosmosdb.uri:}")
@@ -53,4 +56,15 @@ public class TestRepositoryConfig extends AbstractDocumentDbConfiguration {
 
         return DocumentDBConfig.builder(connectionString, dbName).requestOptions(options).build();
     }
+
+    @Bean(name = "auditingDateTimeProvider")
+    public StubDateTimeProvider stubDateTimeProvider() {
+        return new StubDateTimeProvider();
+    }
+
+    @Bean
+    public StubAuditorProvider auditorProvider() {
+        return new StubAuditorProvider();
+    }
+
 }

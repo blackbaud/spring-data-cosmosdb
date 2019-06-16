@@ -7,9 +7,12 @@
 package com.microsoft.azure.spring.data.cosmosdb.repository.support;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.DocumentDbOperations;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentEntity;
+import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentDbPersistentProperty;
 import com.microsoft.azure.spring.data.cosmosdb.repository.query.DocumentDbQueryMethod;
 import com.microsoft.azure.spring.data.cosmosdb.repository.query.PartTreeDocumentDbQuery;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.NamedQueries;
@@ -30,10 +33,12 @@ public class DocumentDbRepositoryFactory extends RepositoryFactorySupport {
 
     private final ApplicationContext applicationContext;
     private final DocumentDbOperations dbOperations;
+    private final MappingContext<? extends DocumentDbPersistentEntity<?>, DocumentDbPersistentProperty> mappingContext;
 
     public DocumentDbRepositoryFactory(DocumentDbOperations dbOperations, ApplicationContext applicationContext) {
         this.dbOperations = dbOperations;
         this.applicationContext = applicationContext;
+        this.mappingContext = dbOperations.getConverter().getMappingContext();
     }
 
     @Override
@@ -49,6 +54,10 @@ public class DocumentDbRepositoryFactory extends RepositoryFactorySupport {
 
     @Override
     public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
+        // TODO: initialization of the persistent entity is required to integrate with spring-data auditing support
+        // there might be a better way to do this, or to better use DocumentDbPersistentEntity and remove logic from
+        // DocumentDbEntityInformation.  should investigate when time permits.
+        mappingContext.getRequiredPersistentEntity(domainClass);
         return new DocumentDbEntityInformation<>(domainClass);
     }
 
