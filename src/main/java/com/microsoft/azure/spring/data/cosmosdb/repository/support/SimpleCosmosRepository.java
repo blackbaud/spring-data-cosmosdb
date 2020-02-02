@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class SimpleCosmosRepository<T, ID extends Serializable> implements CosmosRepository<T, ID> {
@@ -72,11 +73,10 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
                     entity,
                     createKey(information.getPartitionKeyFieldValue(entity)));
         } else {
-            operation.upsert(information.getCollectionName(),
-                    entity, createKey(information.getPartitionKeyFieldValue(entity)));
+            return operation.upsert(information.getCollectionName(), entity,
+                             createKey(information.getPartitionKeyFieldValue(entity)),
+                             information.getVersionFieldValue(entity));
         }
-
-        return entity;
     }
 
     private PartitionKey createKey(String partitionKeyValue) {
@@ -98,9 +98,9 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
     public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
         Assert.notNull(entities, "Iterable entities should not be null");
 
-        entities.forEach(this::save);
-
-        return entities;
+        return StreamSupport.stream(entities.spliterator(), false)
+                .map(this::save)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -197,7 +197,8 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
 
         operation.deleteById(information.getCollectionName(),
                 information.getId(entity),
-                partitionKeyValue == null ? null : new PartitionKey(partitionKeyValue));
+                partitionKeyValue == null ? null : new PartitionKey(partitionKeyValue),
+                information.getVersionFieldValue(entity));
     }
 
     /**

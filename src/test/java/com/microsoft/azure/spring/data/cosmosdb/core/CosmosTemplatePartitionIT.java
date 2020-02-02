@@ -139,7 +139,8 @@ public class CosmosTemplatePartitionIT {
             null, null);
 
         final String partitionKeyValue = newPerson.getLastName();
-        cosmosTemplate.upsert(PartitionPerson.class.getSimpleName(), newPerson, new PartitionKey(partitionKeyValue));
+        cosmosTemplate.upsert(PartitionPerson.class.getSimpleName(), newPerson,
+                              new PartitionKey(partitionKeyValue), null);
 
         final List<PartitionPerson> result = cosmosTemplate.findAll(PartitionPerson.class);
 
@@ -154,7 +155,8 @@ public class CosmosTemplatePartitionIT {
     public void testUpdatePartition() {
         final PartitionPerson updated = new PartitionPerson(TEST_PERSON.getId(), UPDATED_FIRST_NAME,
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
-        cosmosTemplate.upsert(PartitionPerson.class.getSimpleName(), updated, new PartitionKey(updated.getLastName()));
+        cosmosTemplate.upsert(PartitionPerson.class.getSimpleName(), updated,
+                              new PartitionKey(updated.getLastName()), null);
 
         final List<PartitionPerson> result = cosmosTemplate.findAll(PartitionPerson.class);
         final PartitionPerson person = result.stream().filter(

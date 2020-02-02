@@ -196,7 +196,7 @@ public class CosmosTemplateIT {
                 NEW_FIRST_NAME, null, null);
 
         cosmosTemplate.upsert(Person.class.getSimpleName(), newPerson,
-                new PartitionKey(personInfo.getPartitionKeyFieldValue(newPerson)));
+                new PartitionKey(personInfo.getPartitionKeyFieldValue(newPerson)), null);
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
@@ -218,7 +218,7 @@ public class CosmosTemplateIT {
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
         updated.set_etag(insertedPerson.get_etag());
 
-        cosmosTemplate.upsert(Person.class.getSimpleName(), updated, null);
+        cosmosTemplate.upsert(Person.class.getSimpleName(), updated, null, null);
 
         assertThat(responseDiagnosticsTestUtils.getCosmosResponseDiagnostics()).isNotNull();
         assertThat(responseDiagnosticsTestUtils.getFeedResponseDiagnostics()).isNull();
@@ -238,10 +238,9 @@ public class CosmosTemplateIT {
     public void testOptimisticLockWhenUpdatingWithWrongEtag() {
         final Person updated = new Person(TEST_PERSON.getId(), UPDATED_FIRST_NAME,
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
-        updated.set_etag(WRONG_ETAG);
 
         try {
-            cosmosTemplate.upsert(Person.class.getSimpleName(), updated, null);
+            cosmosTemplate.upsert(Person.class.getSimpleName(), updated, null, WRONG_ETAG);
         } catch (CosmosDBAccessException e) {
             assertThat(e.getCosmosClientException()).isNotNull();
             final Throwable cosmosClientException = e.getCosmosClientException();
