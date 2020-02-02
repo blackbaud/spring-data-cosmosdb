@@ -128,6 +128,14 @@ public class CosmosTemplateIT {
         cosmosTemplate.deleteAll(Person.class.getSimpleName(), Person.class);
     }
 
+    @Test
+    public void testInsert() {
+        final Person person = new Person(null, FIRST_NAME, LAST_NAME, HOBBIES, ADDRESSES);
+        final Person insertedPerson = cosmosTemplate.insert(Person.class.getSimpleName(), person,
+                new PartitionKey(person.getLastName()));
+        assertThat(insertedPerson.getId()).isNotNull();
+    }
+
     @Test(expected = CosmosDBAccessException.class)
     public void testInsertDuplicateId() {
         cosmosTemplate.insert(Person.class.getSimpleName(), TEST_PERSON,

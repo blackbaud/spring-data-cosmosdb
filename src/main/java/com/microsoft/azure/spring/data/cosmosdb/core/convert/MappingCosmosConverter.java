@@ -6,8 +6,6 @@
 package com.microsoft.azure.spring.data.cosmosdb.core.convert;
 
 import com.azure.data.cosmos.CosmosItemProperties;
-import com.azure.data.cosmos.internal.Utils;
-import com.azure.data.cosmos.internal.query.QueryItem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
@@ -31,6 +29,7 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.UUID;
 
 import static com.microsoft.azure.spring.data.cosmosdb.Constants.ISO_8601_COMPATIBLE_DATE_PATTERN;
 
@@ -118,7 +117,7 @@ public class MappingCosmosConverter
 
         if (idProperty != null) {
             final Object value = accessor.getProperty(idProperty);
-            final String id = value == null ? null : value.toString();
+            final String id = value == null ? UUID.randomUUID().toString() : value.toString();
             cosmosItemProperties.id(id);
         }
 
