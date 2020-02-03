@@ -183,7 +183,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         final Mono<CosmosItemResponse> monoResponse = insert ?
                 container.createItem(originalItem, options) :
                 container.upsertItem(originalItem, options);
-        CosmosItemResponse response = monoResponse
+        final CosmosItemResponse response = monoResponse
             .doOnNext(cosmosItemResponse -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                 cosmosItemResponse, null))
             .onErrorResume(throwable ->

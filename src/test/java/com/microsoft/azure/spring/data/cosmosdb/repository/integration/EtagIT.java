@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE in the project root for
+ * license information.
+ */
 package com.microsoft.azure.spring.data.cosmosdb.repository.integration;
 
 import com.microsoft.azure.spring.data.cosmosdb.domain.Person;
@@ -68,8 +73,8 @@ public class EtagIT {
         insertedPeople.forEach(person -> person.setFirstName(LAST_NAME));
         final List<Person> updatedPeople = toList(personRepository.saveAll(insertedPeople));
         for (int i = 0; i < updatedPeople.size(); i++) {
-            Person insertedPerson = insertedPeople.get(i);
-            Person updatedPerson = updatedPeople.get(i);
+            final Person insertedPerson = insertedPeople.get(i);
+            final Person updatedPerson = updatedPeople.get(i);
             Assert.assertEquals(insertedPerson.getId(), updatedPerson.getId());
             Assert.assertNotNull(updatedPerson.get_etag());
             Assert.assertNotEquals(insertedPerson.get_etag(), updatedPerson.get_etag());
@@ -80,8 +85,8 @@ public class EtagIT {
                 .collect(Collectors.toList());
         final List<Person> foundPeople = toList(personRepository.findAllById(peopleIds));
         for (int i = 0; i < foundPeople.size(); i++) {
-            Person updatedPerson = updatedPeople.get(i);
-            Person foundPerson = foundPeople.get(i);
+            final Person updatedPerson = updatedPeople.get(i);
+            final Person foundPerson = foundPeople.get(i);
             Assert.assertNotNull(foundPerson.get_etag());
             Assert.assertEquals(updatedPerson.get_etag(), foundPerson.get_etag());
         }
@@ -94,10 +99,10 @@ public class EtagIT {
 
     @Test
     public void testShouldFailIfEtagDoesNotMatch() {
-        Person insertedPerson = personRepository.save(createPerson());
+        final Person insertedPerson = personRepository.save(createPerson());
         insertedPerson.setFirstName(LAST_NAME);
 
-        Person updatedPerson = personRepository.save(insertedPerson);
+        final Person updatedPerson = personRepository.save(insertedPerson);
         updatedPerson.set_etag(insertedPerson.get_etag());
 
         try {
