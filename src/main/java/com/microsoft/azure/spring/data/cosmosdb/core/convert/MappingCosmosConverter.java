@@ -12,6 +12,7 @@ import com.microsoft.azure.spring.data.cosmosdb.Constants;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosPersistentEntity;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.CosmosPersistentProperty;
 import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
+import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -37,6 +38,8 @@ public class MappingCosmosConverter
     implements EntityConverter<CosmosPersistentEntity<?>, CosmosPersistentProperty,
     Object, CosmosItemProperties>,
     ApplicationContextAware {
+
+    private static final String ETAG_KEY = "_etag";
 
     protected final MappingContext<? extends CosmosPersistentEntity<?>,
                                           CosmosPersistentProperty> mappingContext;
@@ -77,6 +80,14 @@ public class MappingCosmosConverter
                 // Replace the key id to the actual id field name in domain
                 jsonObject.remove(Constants.ID_PROPERTY_NAME);
                 jsonObject.put(idProperty.getName(), idValue);
+            }
+
+            final String etag = cosmosItemProperties.getString(ETAG_KEY);
+            if (etag != null) {
+                final CosmosEntityInformation entityInfo = CosmosEntityInformation.getInstance(type);
+                if (entityInfo.isVersioned()) {
+                    jsonObject.put(entityInfo.getVersionFieldName(), etag);
+                }
             }
 
             return objectMapper.readValue(jsonObject.toString(), type);

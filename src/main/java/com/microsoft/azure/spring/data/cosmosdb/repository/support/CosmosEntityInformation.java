@@ -34,8 +34,6 @@ import java.util.function.Function;
 
 public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T, ID> {
 
-    private static final String ETAG = "_etag";
-
     private static Function<Class<?>, CosmosEntityInformation<?, ?>> ENTITY_INFO_CREATOR =
             Memoizer.memoize(CosmosEntityInformation::getCosmosEntityInformation);
 
@@ -120,6 +118,10 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         if (versionField != null) {
             ReflectionUtils.setField(versionField, entity, value);
         }
+    }
+
+    public String getVersionFieldName() {
+        return versionField == null ? null : versionField.getName();
     }
 
     public String getPartitionKeyFieldName() {
@@ -281,11 +283,19 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
     }
 
     private Field getVersionedField(Class<T> domainClass) {
-        final Field findField = ReflectionUtils.findField(domainClass, ETAG);
-        if (findField != null && findField.isAnnotationPresent(Version.class) && findField.getType() != String.class) {
+        Field version = null;
+        final List<Field> fields = FieldUtils.getFieldsListWithAnnotation(domainClass, Version.class);
+
+        if (fields.size() == 1) {
+            version = fields.get(0);
+        } else if (fields.size() > 1) {
+            throw new IllegalArgumentException("Azure Cosmos DB supports only one field with @Version annotation!");
+        }
+
+        if (version != null && version.getType() != String.class) {
             throw new IllegalArgumentException("type of Version field must be String");
         }
-        return findField;
+        return version;
     }
 
     private boolean getIsAutoCreateCollection(Class<T> domainClass) {

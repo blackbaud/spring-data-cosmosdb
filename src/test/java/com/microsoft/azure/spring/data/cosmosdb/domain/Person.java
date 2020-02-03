@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Version;
 
 @Data
-@EqualsAndHashCode(exclude = "_etag")
+@EqualsAndHashCode(exclude = "etag")
 @NoArgsConstructor
 @DocumentIndexingPolicy(includePaths = TestConstants.ORDER_BY_STRING_PATH)
 public class Person {
@@ -32,7 +32,7 @@ public class Person {
     private List<String> hobbies;
     private List<Address> shippingAddresses;
     @Version
-    private String _etag;
+    private String etag;
     
     public Person(String id, String firstName, String lastName, List<String> hobbies, List<Address> shippingAddresses) {
         this.id = id;

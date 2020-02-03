@@ -216,7 +216,7 @@ public class CosmosTemplateIT {
     public void testUpdate() {
         final Person updated = new Person(TEST_PERSON.getId(), UPDATED_FIRST_NAME,
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
-        updated.set_etag(insertedPerson.get_etag());
+        updated.setEtag(insertedPerson.getEtag());
 
         cosmosTemplate.upsert(Person.class.getSimpleName(), updated, null, null);
 

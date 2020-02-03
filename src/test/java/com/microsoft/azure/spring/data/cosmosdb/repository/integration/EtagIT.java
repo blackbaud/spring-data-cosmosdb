@@ -43,17 +43,17 @@ public class EtagIT {
     @Test
     public void testCrudOperationsShouldApplyEtag() {
         final Person insertedPerson = personRepository.save(createPerson());
-        Assert.assertNotNull(insertedPerson.get_etag());
+        Assert.assertNotNull(insertedPerson.getEtag());
 
         insertedPerson.setFirstName(LAST_NAME);
         final Person updatedPerson = personRepository.save(insertedPerson);
-        Assert.assertNotNull(updatedPerson.get_etag());
-        Assert.assertNotEquals(insertedPerson.get_etag(), updatedPerson.get_etag());
+        Assert.assertNotNull(updatedPerson.getEtag());
+        Assert.assertNotEquals(insertedPerson.getEtag(), updatedPerson.getEtag());
 
         final Optional<Person> foundPerson = personRepository.findById(insertedPerson.getId());
         Assert.assertTrue(foundPerson.isPresent());
-        Assert.assertNotNull(foundPerson.get().get_etag());
-        Assert.assertEquals(updatedPerson.get_etag(), foundPerson.get().get_etag());
+        Assert.assertNotNull(foundPerson.get().getEtag());
+        Assert.assertEquals(updatedPerson.getEtag(), foundPerson.get().getEtag());
     }
 
     @Test
@@ -63,7 +63,7 @@ public class EtagIT {
         people.add(createPerson());
 
         final List<Person> insertedPeople = toList(personRepository.saveAll(people));
-        insertedPeople.forEach(person -> Assert.assertNotNull(person.get_etag()));
+        insertedPeople.forEach(person -> Assert.assertNotNull(person.getEtag()));
 
         insertedPeople.forEach(person -> person.setFirstName(LAST_NAME));
         final List<Person> updatedPeople = toList(personRepository.saveAll(insertedPeople));
@@ -71,8 +71,8 @@ public class EtagIT {
             Person insertedPerson = insertedPeople.get(i);
             Person updatedPerson = updatedPeople.get(i);
             Assert.assertEquals(insertedPerson.getId(), updatedPerson.getId());
-            Assert.assertNotNull(updatedPerson.get_etag());
-            Assert.assertNotEquals(insertedPerson.get_etag(), updatedPerson.get_etag());
+            Assert.assertNotNull(updatedPerson.getEtag());
+            Assert.assertNotEquals(insertedPerson.getEtag(), updatedPerson.getEtag());
         }
 
         final List<String> peopleIds = updatedPeople.stream()
@@ -82,8 +82,8 @@ public class EtagIT {
         for (int i = 0; i < foundPeople.size(); i++) {
             Person updatedPerson = updatedPeople.get(i);
             Person foundPerson = foundPeople.get(i);
-            Assert.assertNotNull(foundPerson.get_etag());
-            Assert.assertEquals(updatedPerson.get_etag(), foundPerson.get_etag());
+            Assert.assertNotNull(foundPerson.getEtag());
+            Assert.assertEquals(updatedPerson.getEtag(), foundPerson.getEtag());
         }
     }
 
@@ -98,7 +98,7 @@ public class EtagIT {
         insertedPerson.setFirstName(LAST_NAME);
 
         Person updatedPerson = personRepository.save(insertedPerson);
-        updatedPerson.set_etag(insertedPerson.get_etag());
+        updatedPerson.setEtag(insertedPerson.getEtag());
 
         try {
             personRepository.save(updatedPerson);
