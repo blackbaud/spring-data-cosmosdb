@@ -196,7 +196,8 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
 
         operation.deleteById(information.getCollectionName(),
                 information.getId(entity),
-                partitionKeyValue == null ? null : new PartitionKey(partitionKeyValue));
+                partitionKeyValue == null ? null : new PartitionKey(partitionKeyValue),
+                information.getVersionFieldValue(entity));
     }
 
     /**

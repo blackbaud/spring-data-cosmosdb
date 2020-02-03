@@ -264,6 +264,10 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
     }
 
     public void deleteById(String collectionName, Object id, PartitionKey partitionKey) {
+        deleteById(collectionName, id, partitionKey, null);
+    }
+
+    public void deleteById(String collectionName, Object id, PartitionKey partitionKey, String etag) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
         assertValidId(id);
 
@@ -272,7 +276,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         if (partitionKey == null) {
             partitionKey = PartitionKey.None;
         }
-        final CosmosItemRequestOptions options = createRequestOptions(partitionKey, null);
+        final CosmosItemRequestOptions options = createRequestOptions(partitionKey, etag);
         cosmosClient.getDatabase(this.databaseName)
                     .getContainer(collectionName)
                     .getItem(id.toString(), partitionKey)

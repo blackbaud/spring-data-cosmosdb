@@ -42,6 +42,8 @@ public interface CosmosOperations {
 
     void deleteById(String collectionName, Object id, PartitionKey partitionKey);
 
+    void deleteById(String collectionName, Object id, PartitionKey partitionKey, String etag);
+
     void deleteAll(String collectionName, Class<?> domainClass);
 
     void deleteCollection(String collectionName);
