@@ -9,15 +9,19 @@ package com.microsoft.azure.spring.data.cosmosdb.core;
 import com.azure.data.cosmos.AccessCondition;
 import com.azure.data.cosmos.AccessConditionType;
 import com.azure.data.cosmos.CosmosClient;
+import com.azure.data.cosmos.CosmosContainer;
 import com.azure.data.cosmos.CosmosContainerProperties;
 import com.azure.data.cosmos.CosmosContainerResponse;
 import com.azure.data.cosmos.CosmosItemProperties;
 import com.azure.data.cosmos.CosmosItemRequestOptions;
 import com.azure.data.cosmos.CosmosItemResponse;
+import com.azure.data.cosmos.CosmosResponse;
 import com.azure.data.cosmos.FeedOptions;
 import com.azure.data.cosmos.FeedResponse;
 import com.azure.data.cosmos.PartitionKey;
+import com.azure.data.cosmos.Resource;
 import com.azure.data.cosmos.SqlQuerySpec;
+import com.azure.data.cosmos.internal.HttpConstants;
 import com.microsoft.azure.spring.data.cosmosdb.CosmosDbFactory;
 import com.microsoft.azure.spring.data.cosmosdb.common.Memoizer;
 import com.microsoft.azure.spring.data.cosmosdb.core.convert.MappingCosmosConverter;
@@ -90,31 +94,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
     }
 
     public <T> T insert(String collectionName, T objectToSave, PartitionKey partitionKey) {
-        Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-        Assert.notNull(objectToSave, "objectToSave should not be null");
-
-        final CosmosItemProperties originalItem = mappingCosmosConverter.writeCosmosItemProperties(objectToSave);
-
-        log.debug("execute createItem in database {} collection {}", this.databaseName, collectionName);
-
-        final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-        options.partitionKey(partitionKey);
-
-        @SuppressWarnings("unchecked")
-        final Class<T> domainClass = (Class<T>) objectToSave.getClass();
-
-        final CosmosItemResponse response = cosmosClient
-            .getDatabase(this.databaseName)
-            .getContainer(collectionName)
-            .createItem(originalItem, options)
-            .doOnNext(cosmosItemResponse -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
-                cosmosItemResponse, null))
-            .onErrorResume(throwable ->
-                exceptionHandler("Failed to insert item", throwable))
-            .block();
-
-        assert response != null;
-        return mappingCosmosConverter.read(domainClass, response.properties());
+        return upsert(collectionName, objectToSave, partitionKey, true);
     }
 
     public <T> T findById(Object id, Class<T> entityClass) {
@@ -173,34 +153,45 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
             .blockFirst();
     }
 
-    public <T> void upsert(T object, PartitionKey partitionKey) {
+    public <T> T upsert(T object, PartitionKey partitionKey) {
         Assert.notNull(object, "Upsert object should not be null");
 
-        upsert(getCollectionName(object.getClass()), object, partitionKey);
+        return upsert(getCollectionName(object.getClass()), object, partitionKey);
     }
 
-    public <T> void upsert(String collectionName, T object, PartitionKey partitionKey) {
+    public <T> T upsert(String collectionName, T object, PartitionKey partitionKey) {
+        return upsert(collectionName, object, partitionKey, false);
+    }
+
+    public <T> T upsert(String collectionName, T object, PartitionKey partitionKey, boolean insert) {
         Assert.hasText(collectionName, "collectionName should not be null, empty or only whitespaces");
-        Assert.notNull(object, "Upsert object should not be null");
+        Assert.notNull(object, "object should not be null");
 
         final CosmosItemProperties originalItem = mappingCosmosConverter.writeCosmosItemProperties(object);
 
-        log.debug("execute upsert item in database {} collection {}", this.databaseName, collectionName);
+        log.debug("execute {} in database {} collection {}", insert ? "insertItem" : "upsertItem",
+                  this.databaseName, collectionName);
 
-        final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-        options.partitionKey(partitionKey);
-        applyVersioning(object.getClass(), originalItem, options);
+        final CosmosItemRequestOptions options = createRequestOptions(partitionKey, originalItem.etag());
 
-        final CosmosItemResponse cosmosItemResponse = cosmosClient
+        @SuppressWarnings("unchecked")
+        final Class<T> domainClass = (Class<T>) object.getClass();
+
+        final CosmosContainer container = cosmosClient
             .getDatabase(this.databaseName)
-            .getContainer(collectionName)
-            .upsertItem(originalItem, options)
-            .doOnNext(response -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
-                response, null))
-            .onErrorResume(throwable -> exceptionHandler("Failed to upsert item", throwable))
+            .getContainer(collectionName);
+        final Mono<CosmosItemResponse> monoResponse = insert ?
+                container.createItem(originalItem, options) :
+                container.upsertItem(originalItem, options);
+        CosmosItemResponse response = monoResponse
+            .doOnNext(cosmosItemResponse -> fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
+                cosmosItemResponse, null))
+            .onErrorResume(throwable ->
+                exceptionHandler("Failed to insert item", throwable))
             .block();
 
-        assert cosmosItemResponse != null;
+        assert response != null;
+        return mappingCosmosConverter.read(domainClass, response.properties());
     }
 
     public <T> List<T> findAll(Class<T> entityClass) {
@@ -281,8 +272,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         if (partitionKey == null) {
             partitionKey = PartitionKey.None;
         }
-        final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-        options.partitionKey(partitionKey);
+        final CosmosItemRequestOptions options = createRequestOptions(partitionKey, null);
         cosmosClient.getDatabase(this.databaseName)
                     .getContainer(collectionName)
                     .getItem(id.toString(), partitionKey)
@@ -536,9 +526,7 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
             partitionKey = PartitionKey.None;
         }
 
-        final CosmosItemRequestOptions options = new CosmosItemRequestOptions(partitionKey);
-        applyVersioning(domainClass, cosmosItemProperties, options);
-
+        final CosmosItemRequestOptions options = createRequestOptions(partitionKey, null);
         return cosmosClient
             .getDatabase(this.databaseName)
             .getContainer(containerName)
@@ -555,16 +543,16 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
         return mappingCosmosConverter.read(domainClass, cosmosItemProperties);
     }
 
-    private void applyVersioning(Class<?> domainClass,
-            CosmosItemProperties cosmosItemProperties,
-            CosmosItemRequestOptions options) {
-
-        if (entityInfoCreator.apply(domainClass).isVersioned()) {
+    private CosmosItemRequestOptions createRequestOptions(PartitionKey partitionKey, String etag) {
+        final CosmosItemRequestOptions options = new CosmosItemRequestOptions();
+        options.partitionKey(partitionKey);
+        if (etag != null) {
             final AccessCondition accessCondition = new AccessCondition();
             accessCondition.type(AccessConditionType.IF_MATCH);
-            accessCondition.condition(cosmosItemProperties.etag());
+            accessCondition.condition(etag);
             options.accessCondition(accessCondition);
         }
+        return options;
     }
 
     private CosmosEntityInformation<?, ?> getCosmosEntityInformation(Class<?> domainClass) {

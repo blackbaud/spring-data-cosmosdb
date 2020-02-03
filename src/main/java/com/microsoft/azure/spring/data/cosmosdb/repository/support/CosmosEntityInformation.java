@@ -11,6 +11,7 @@ import com.azure.data.cosmos.IncludedPath;
 import com.azure.data.cosmos.IndexingMode;
 import com.azure.data.cosmos.IndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.Constants;
+import com.microsoft.azure.spring.data.cosmosdb.common.Memoizer;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.DocumentIndexingPolicy;
 import com.microsoft.azure.spring.data.cosmosdb.core.mapping.PartitionKey;
@@ -28,18 +29,20 @@ import static com.microsoft.azure.spring.data.cosmosdb.common.ExpressionResolver
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 
 public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T, ID> {
 
     private static final String ETAG = "_etag";
+
     private Field id;
     private Field partitionKeyField;
+    private Field versionField;
     private String collectionName;
     private Integer requestUnit;
     private Integer timeToLive;
     private IndexingPolicy indexingPolicy;
-    private boolean isVersioned;
     private boolean autoCreateCollection;
 
     public CosmosEntityInformation(Class<T> domainClass) {
@@ -53,11 +56,13 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         if (this.partitionKeyField != null) {
             ReflectionUtils.makeAccessible(this.partitionKeyField);
         }
-
+        this.versionField = getVersionedField(domainClass);
+        if (this.versionField != null) {
+            ReflectionUtils.makeAccessible(this.versionField);
+        }
         this.requestUnit = getRequestUnit(domainClass);
         this.timeToLive = getTimeToLive(domainClass);
         this.indexingPolicy = getIndexingPolicy(domainClass);
-        this.isVersioned = getIsVersioned(domainClass);
         this.autoCreateCollection = getIsAutoCreateCollection(domainClass);
     }
 
@@ -93,7 +98,11 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
     }
 
     public boolean isVersioned() {
-        return isVersioned;
+        return versionField != null;
+    }
+
+    public String getVersionFieldValue(T entity) {
+        return versionField == null ? null : (String) ReflectionUtils.getField(versionField, entity);
     }
 
     public String getPartitionKeyFieldName() {
@@ -254,11 +263,15 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return pathArrayList;
     }
 
-    private boolean getIsVersioned(Class<T> domainClass) {
-        final Field findField = ReflectionUtils.findField(domainClass, ETAG);
-        return findField != null 
-                && findField.getType() == String.class
-                && findField.isAnnotationPresent(Version.class);
+    private Field getVersionedField(Class<T> domainClass) {
+        Field findField = ReflectionUtils.findField(domainClass, ETAG);
+        if (findField != null && !findField.isAnnotationPresent(Version.class)) {
+            findField = null;
+        }
+        if (findField != null && findField.getType() != String.class) {
+            throw new IllegalArgumentException("type of Version field must be String");
+        }
+        return findField;
     }
 
     private boolean getIsAutoCreateCollection(Class<T> domainClass) {

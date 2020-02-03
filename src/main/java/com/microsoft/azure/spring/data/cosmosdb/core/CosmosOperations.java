@@ -36,9 +36,9 @@ public interface CosmosOperations {
 
     <T> T insert(String collectionName, T objectToSave, PartitionKey partitionKey);
 
-    <T> void upsert(T object, PartitionKey partitionKey);
+    <T> T upsert(T object, PartitionKey partitionKey);
 
-    <T> void upsert(String collectionName, T object, PartitionKey partitionKey);
+    <T> T upsert(String collectionName, T object, PartitionKey partitionKey);
 
     void deleteById(String collectionName, Object id, PartitionKey partitionKey);
 
