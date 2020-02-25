@@ -16,19 +16,19 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CosmosQueryExecution {
-    Object execute(DocumentQuery query, Class<?> type, String collection);
+    Object execute(DocumentQuery query, Class<?> type, String container);
 
-    final class CollectionExecution implements CosmosQueryExecution {
+    final class ContainerExecution implements CosmosQueryExecution {
 
         private final CosmosOperations operations;
 
-        public CollectionExecution(CosmosOperations operations) {
+        public ContainerExecution(CosmosOperations operations) {
             this.operations = operations;
         }
 
         @Override
-        public Object execute(DocumentQuery query, Class<?> type, String collection) {
-            return operations.getCollectionName(type);
+        public Object execute(DocumentQuery query, Class<?> type, String container) {
+            return operations.getContainerName(type);
         }
     }
 
@@ -41,8 +41,8 @@ public interface CosmosQueryExecution {
         }
 
         @Override
-        public Object execute(DocumentQuery query, Class<?> type, String collection) {
-            return operations.find(query, type, collection);
+        public Object execute(DocumentQuery query, Class<?> type, String container) {
+            return operations.find(query, type, container);
         }
     }
 
@@ -87,8 +87,8 @@ public interface CosmosQueryExecution {
         }
 
         @Override
-        public Object execute(DocumentQuery query, Class<?> type, String collection) {
-            return operations.exists(query, type, collection);
+        public Object execute(DocumentQuery query, Class<?> type, String container) {
+            return operations.exists(query, type, container);
         }
     }
 
@@ -101,8 +101,8 @@ public interface CosmosQueryExecution {
         }
 
         @Override
-        public Object execute(DocumentQuery query, Class<?> type, String collection) {
-            return operations.delete(query, type, collection);
+        public Object execute(DocumentQuery query, Class<?> type, String container) {
+            return operations.delete(query, type, container);
         }
     }
 
@@ -116,7 +116,7 @@ public interface CosmosQueryExecution {
         }
 
         @Override
-        public Object execute(DocumentQuery query, Class<?> type, String collection) {
+        public Object execute(DocumentQuery query, Class<?> type, String container) {
             if (pageable.getPageNumber() != 0 && !(pageable instanceof CosmosPageRequest)) {
                 throw new IllegalStateException("Not the first page but Pageable is not a valid " +
                         "CosmosPageRequest, requestContinuation is required for non first page request");
@@ -124,7 +124,7 @@ public interface CosmosQueryExecution {
 
             query.with(pageable);
 
-            return operations.paginationQuery(query, type, collection);
+            return operations.paginationQuery(query, type, container);
         }
     }
 }
