@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class Constants {
 
     public static final String DEFAULT_COLLECTION_NAME = "";
-    public static final String DEFAULT_REQUEST_UNIT = "4000";
+    public static final String DEFAULT_REQUEST_UNIT = "400";
     public static final boolean DEFAULT_INDEXINGPOLICY_AUTOMATIC = true;
     public static final IndexingMode DEFAULT_INDEXINGPOLICY_MODE = IndexingMode.CONSISTENT;
     public static final String DEFAULT_REPOSITORY_IMPLEMENT_POSTFIX = "Impl";
