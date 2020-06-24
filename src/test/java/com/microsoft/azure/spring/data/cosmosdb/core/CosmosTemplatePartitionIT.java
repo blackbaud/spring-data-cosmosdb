@@ -63,7 +63,7 @@ public class CosmosTemplatePartitionIT {
     private CosmosDBConfig dbConfig;
 
     @Before
-    public void setUp() throws ClassNotFoundException {
+    public void setup() throws ClassNotFoundException {
         if (!initialized) {
             final CosmosDbFactory cosmosDbFactory = new CosmosDbFactory(dbConfig);
             final CosmosMappingContext mappingContext = new CosmosMappingContext();

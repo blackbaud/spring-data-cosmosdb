@@ -7,7 +7,6 @@ package com.microsoft.azure.spring.data.cosmosdb.repository;
 
 import com.azure.data.cosmos.ConsistencyLevel;
 import com.azure.data.cosmos.internal.RequestOptions;
-import com.microsoft.azure.spring.data.cosmosdb.common.DynamicContainer;
 import com.microsoft.azure.spring.data.cosmosdb.common.ResponseDiagnosticsTestUtils;
 import com.microsoft.azure.spring.data.cosmosdb.common.TestConstants;
 import com.microsoft.azure.spring.data.cosmosdb.config.AbstractCosmosConfiguration;
@@ -73,7 +72,19 @@ public class TestRepositoryConfig extends AbstractCosmosConfiguration {
     }
     
     @Bean
-    public DynamicContainer dynamicContainer() {
-        return new DynamicContainer(TestConstants.DYNAMIC_BEAN_COLLECTION_NAME);
+    public DynamicCollectionContainer dynamicCollectionContainer() {
+        return new DynamicCollectionContainer("spel-bean-collection");
+    }
+    
+    public class DynamicCollectionContainer {
+        private String containerName;
+
+        public DynamicCollectionContainer(String containerName) {
+            this.containerName = containerName;
+        }
+        
+        public String getContainerName() {
+            return this.containerName;
+        }
     }
 }

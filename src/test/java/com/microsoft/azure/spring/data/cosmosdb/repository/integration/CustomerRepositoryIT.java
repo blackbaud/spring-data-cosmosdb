@@ -64,7 +64,7 @@ public class CustomerRepositoryIT {
     private CosmosTemplate template;
 
     @Before
-    public void setUp() {
+    public void setup() {
         if (!isSetupDone) {
             staticTemplate = template;
             template.createContainerIfNotExists(entityInformation);

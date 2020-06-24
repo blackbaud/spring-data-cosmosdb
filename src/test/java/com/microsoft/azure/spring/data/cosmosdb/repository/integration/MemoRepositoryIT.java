@@ -75,7 +75,7 @@ public class MemoRepositoryIT {
     }
 
     @Before
-    public void setUp() {
+    public void setup() {
         if (!isSetupDone) {
             staticTemplate = template;
             template.createContainerIfNotExists(entityInformation);

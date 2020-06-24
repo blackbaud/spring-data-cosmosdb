@@ -63,7 +63,7 @@ public class AddressRepositoryIT {
     public ExpectedException expectedException = ExpectedException.none();
 
     @Before
-    public void setUp() {
+    public void setup() {
         if (!isSetupDone) {
             staticTemplate = template;
             template.createContainerIfNotExists(entityInformation);

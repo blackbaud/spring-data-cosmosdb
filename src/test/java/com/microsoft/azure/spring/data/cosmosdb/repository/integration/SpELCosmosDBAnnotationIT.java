@@ -17,8 +17,7 @@ import com.microsoft.azure.spring.data.cosmosdb.domain.SpELBeanStudent;
 import com.microsoft.azure.spring.data.cosmosdb.domain.SpELPropertyStudent;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
-import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +31,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+/**
+ * 
+ * @author Domenico Sibilio
+ *
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
 public class SpELCosmosDBAnnotationIT {
@@ -48,23 +52,13 @@ public class SpELCosmosDBAnnotationIT {
     @Autowired
     private ApplicationContext applicationContext;
 
-    @Autowired
     private CosmosTemplate cosmosTemplate;
+    private CosmosEntityInformation<SpELPropertyStudent, String> cosmosEntityInformation;
 
-    private static CosmosTemplate staticTemplate;
-    private static CosmosEntityInformation<SpELPropertyStudent, String> cosmosEntityInformation;
-
-    @Before
-    public void setUp() {
-        if (staticTemplate == null) {
-            staticTemplate = cosmosTemplate;
-        }
-    }
-
-    @AfterClass
-    public static void afterClassCleanup() {
-        if (cosmosEntityInformation != null) {
-            staticTemplate.deleteContainer(cosmosEntityInformation.getContainerName());
+    @After
+    public void cleanUp() {
+        if (cosmosTemplate != null && cosmosEntityInformation != null) {
+            cosmosTemplate.deleteContainer(cosmosEntityInformation.getContainerName());
         }
     }
     
@@ -95,16 +89,16 @@ public class SpELCosmosDBAnnotationIT {
 
       final ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
       final MappingCosmosConverter mappingConverter = new MappingCosmosConverter(dbContext, objectMapper);
-      staticTemplate = new CosmosTemplate(dbFactory, mappingConverter, TestConstants.DB_NAME);
+      cosmosTemplate = new CosmosTemplate(dbFactory, mappingConverter, TestConstants.DB_NAME);
       
-      staticTemplate.createContainerIfNotExists(cosmosEntityInformation);
+      cosmosTemplate.createContainerIfNotExists(cosmosEntityInformation);
 
       final SpELPropertyStudent insertedRecord = 
-              staticTemplate.insert(cosmosEntityInformation.getContainerName(), TEST_PROPERTY_STUDENT, null);
+              cosmosTemplate.insert(cosmosEntityInformation.getContainerName(), TEST_PROPERTY_STUDENT, null);
       assertNotNull(insertedRecord);
       
       final SpELPropertyStudent readRecord = 
-              staticTemplate.findById(TestConstants.DYNAMIC_PROPERTY_COLLECTION_NAME,
+              cosmosTemplate.findById(TestConstants.DYNAMIC_PROPERTY_COLLECTION_NAME,
                       insertedRecord.getId(), SpELPropertyStudent.class);
       assertNotNull(readRecord);
     }
