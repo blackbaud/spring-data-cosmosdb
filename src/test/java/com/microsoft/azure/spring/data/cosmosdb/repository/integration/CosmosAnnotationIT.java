@@ -18,6 +18,7 @@ import com.microsoft.azure.spring.data.cosmosdb.domain.Role;
 import com.microsoft.azure.spring.data.cosmosdb.domain.TimeToLiveSample;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -30,8 +31,6 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -46,7 +45,6 @@ public class CosmosAnnotationIT {
 
     private static CosmosTemplate cosmosTemplate;
     private static CosmosContainerProperties collectionRole;
-    private static CosmosContainerProperties collectionSample;
     private static CosmosEntityInformation<Role, String> roleInfo;
     private static CosmosEntityInformation<TimeToLiveSample, String> sampleInfo;
 
@@ -70,9 +68,15 @@ public class CosmosAnnotationIT {
         }
         collectionRole = cosmosTemplate.createContainerIfNotExists(roleInfo);
 
-        collectionSample = cosmosTemplate.createContainerIfNotExists(sampleInfo);
+        cosmosTemplate.createContainerIfNotExists(sampleInfo);
 
         cosmosTemplate.insert(roleInfo.getContainerName(), TEST_ROLE, null);
+    }
+
+    @After
+    public void cleanUp() {
+        cosmosTemplate.deleteContainer(roleInfo.getContainerName());
+        cosmosTemplate.deleteContainer(sampleInfo.getContainerName());
     }
 
     @AfterClass
@@ -82,23 +86,14 @@ public class CosmosAnnotationIT {
     }
 
     @Test
-    public void testTimeToLiveAnnotation() {
-        Integer timeToLive = sampleInfo.getTimeToLive();
-        assertThat(timeToLive).isEqualTo(collectionSample.defaultTimeToLive());
-
-        timeToLive = roleInfo.getTimeToLive();
-        assertThat(timeToLive).isEqualTo(collectionRole.defaultTimeToLive());
-    }
-
-    @Test
-    @Ignore // TODO(kuthapar): Ignore this test case for now, will update this from service update.
+    @Ignore // TODO(pan): Ignore this test case for now, will update this from service update.
     public void testIndexingPolicyAnnotation() {
         final IndexingPolicy policy = collectionRole.indexingPolicy();
 
+        Assert.isTrue(policy.automatic() == TestConstants.INDEXINGPOLICY_AUTOMATIC,
+                "unmatched collection policy automatic of class Role");
         Assert.isTrue(policy.indexingMode() == TestConstants.INDEXINGPOLICY_MODE,
                 "unmatched collection policy indexing mode of class Role");
-        Assert.isTrue(policy.automatic() == TestConstants.INDEXINGPOLICY_AUTOMATIC,
-            "unmatched collection policy automatic of class Role");
 
         TestUtils.testIndexingPolicyPathsEquals(policy.includedPaths(), TestConstants.INCLUDEDPATHS);
         TestUtils.testIndexingPolicyPathsEquals(policy.excludedPaths(), TestConstants.EXCLUDEDPATHS);

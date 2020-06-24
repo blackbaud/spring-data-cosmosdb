@@ -307,14 +307,10 @@ public class CosmosTemplate implements CosmosOperations, ApplicationContextAware
             .flatMap(cosmosDatabaseResponse -> {
                 fillAndProcessResponseDiagnostics(responseDiagnosticsProcessor,
                     cosmosDatabaseResponse, null);
-                final CosmosContainerProperties cosmosContainerProperties = new CosmosContainerProperties(
-                    information.getContainerName(),
-                    "/" + information.getPartitionKeyFieldName());
-                cosmosContainerProperties.defaultTimeToLive(information.getTimeToLive());
-                cosmosContainerProperties.indexingPolicy(information.getIndexingPolicy());
                 return cosmosDatabaseResponse
                     .database()
-                    .createContainerIfNotExists(cosmosContainerProperties, information.getRequestUnit())
+                    .createContainerIfNotExists(information.getContainerName(),
+                        "/" + information.getPartitionKeyFieldName(), information.getRequestUnit())
                     .onErrorResume(throwable ->
                         exceptionHandler("Failed to create container", throwable))
                     .doOnNext(cosmosContainerResponse ->

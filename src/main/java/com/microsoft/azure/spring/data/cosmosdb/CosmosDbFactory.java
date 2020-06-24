@@ -32,7 +32,7 @@ public class CosmosDbFactory {
     private String getUserAgentSuffix() {
         String suffix = ";" + USER_AGENT_SUFFIX;
 
-        if (IS_TELEMETRY_ALLOWED || config.isAllowTelemetry()) {
+        if (IS_TELEMETRY_ALLOWED) {
             suffix += ";" + MacAddress.getHashMac();
         }
 
@@ -87,8 +87,7 @@ public class CosmosDbFactory {
 
     @PostConstruct
     private void sendTelemetry() {
-        //  If any one of them is enabled, send telemetry data
-        if (IS_TELEMETRY_ALLOWED || config.isAllowTelemetry()) {
+        if (IS_TELEMETRY_ALLOWED) {
             final TelemetrySender sender = new TelemetrySender();
 
             sender.send(this.getClass().getSimpleName());
