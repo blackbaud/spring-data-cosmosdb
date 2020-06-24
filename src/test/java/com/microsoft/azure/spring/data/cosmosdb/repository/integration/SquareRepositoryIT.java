@@ -12,7 +12,6 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.SquareRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,11 +30,8 @@ public class SquareRepositoryIT {
     private Square square1 = new Square("id_1", 1, 1);
     private Square square2 = new Square("id_2", 2, 4);
 
-    private static final CosmosEntityInformation<Square, String> entityInformation =
+    private final CosmosEntityInformation<Square, String> entityInformation =
             new CosmosEntityInformation<>(Square.class);
-
-    private static CosmosTemplate staticTemplate;
-    private static boolean isSetupDone;
 
     @Autowired
     private CosmosTemplate template;
@@ -45,23 +41,13 @@ public class SquareRepositoryIT {
 
     @Before
     public void setup() {
-        if (!isSetupDone) {
-            staticTemplate = template;
-            template.createContainerIfNotExists(entityInformation);
-        }
         repository.save(square1);
         repository.save(square2);
-        isSetupDone = true;
     }
 
     @After
     public void cleanup() {
         repository.deleteAll();
-    }
-
-    @AfterClass
-    public static void afterClassCleanup() {
-        staticTemplate.deleteContainer(entityInformation.getContainerName());
     }
 
     @Test

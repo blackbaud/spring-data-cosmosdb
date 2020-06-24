@@ -14,7 +14,6 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ProjectRep
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.assertj.core.util.Lists;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,11 +75,8 @@ public class ProjectRepositorySortIT {
 
     private static final List<Project> PROJECTS = Arrays.asList(PROJECT_4, PROJECT_3, PROJECT_2, PROJECT_1, PROJECT_0);
 
-    private static final CosmosEntityInformation<Project, String> entityInformation =
+    private final CosmosEntityInformation<Project, String> entityInformation =
             new CosmosEntityInformation<>(Project.class);
-
-    private static CosmosTemplate staticTemplate;
-    private static boolean isSetupDone;
 
     @Autowired
     private CosmosTemplate template;
@@ -90,22 +86,12 @@ public class ProjectRepositorySortIT {
     
     @Before
     public void setup() {
-        if (!isSetupDone) {
-            staticTemplate = template;
-            template.createContainerIfNotExists(entityInformation);
-        }
         this.repository.saveAll(PROJECTS);
-        isSetupDone = true;
     }
 
     @After
     public void cleanup() {
         this.repository.deleteAll();
-    }
-
-    @AfterClass
-    public static void afterClassCleanup() {
-        staticTemplate.deleteContainer(entityInformation.getContainerName());
     }
 
     @Test

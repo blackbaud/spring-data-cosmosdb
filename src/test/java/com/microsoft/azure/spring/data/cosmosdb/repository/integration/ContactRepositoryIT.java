@@ -13,7 +13,6 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.repository.ContactRep
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.assertj.core.util.Lists;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -36,11 +35,8 @@ public class ContactRepositoryIT {
 
     private static final Contact TEST_CONTACT = new Contact("testId", "faketitle");
 
-    private static final CosmosEntityInformation<Contact, String> entityInformation =
+    private final CosmosEntityInformation<Contact, String> entityInformation =
             new CosmosEntityInformation<>(Contact.class);
-
-    private static CosmosTemplate staticTemplate;
-    private static boolean isSetupDone;
 
     @Autowired
     ContactRepository repository;
@@ -50,22 +46,12 @@ public class ContactRepositoryIT {
 
     @Before
     public void setup() {
-        if (!isSetupDone) {
-            staticTemplate = template;
-            template.createContainerIfNotExists(entityInformation);
-        }
         repository.save(TEST_CONTACT);
-        isSetupDone = true;
     }
 
     @After
     public void cleanup() {
         repository.deleteAll();
-    }
-
-    @AfterClass
-    public static void afterClassCleanup() {
-        staticTemplate.deleteContainer(entityInformation.getContainerName());
     }
 
     @Test

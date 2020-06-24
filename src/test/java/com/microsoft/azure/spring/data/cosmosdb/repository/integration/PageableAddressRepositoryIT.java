@@ -19,7 +19,6 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.PageableAddressRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,11 +51,8 @@ public class PageableAddressRepositoryIT {
     private static final Address TEST_ADDRESS4_PARTITION3 = new Address(
             TestConstants.POSTAL_CODE, TestConstants.STREET_1, TestConstants.CITY_1);
 
-    private static final CosmosEntityInformation<Address, String> entityInformation =
+    private final CosmosEntityInformation<Address, String> entityInformation =
             new CosmosEntityInformation<>(Address.class);
-
-    private static CosmosTemplate staticTemplate;
-    private static boolean isSetupDone;
 
     @Autowired
     private CosmosTemplate template;
@@ -72,25 +68,15 @@ public class PageableAddressRepositoryIT {
 
     @Before
     public void setup() {
-        if (!isSetupDone) {
-            staticTemplate = template;
-            template.createContainerIfNotExists(entityInformation);
-        }
         repository.save(TEST_ADDRESS1_PARTITION1);
         repository.save(TEST_ADDRESS1_PARTITION2);
         repository.save(TEST_ADDRESS2_PARTITION1);
         repository.save(TEST_ADDRESS4_PARTITION3);
-        isSetupDone = true;
     }
 
     @After
     public void cleanup() {
         repository.deleteAll();
-    }
-
-    @AfterClass
-    public static void afterClassCleanup() {
-        staticTemplate.deleteContainer(entityInformation.getContainerName());
     }
 
     @Test

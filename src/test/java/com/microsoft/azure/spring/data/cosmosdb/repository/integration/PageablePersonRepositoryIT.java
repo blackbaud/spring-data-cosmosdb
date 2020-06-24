@@ -15,7 +15,6 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityI
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,10 +39,8 @@ public class PageablePersonRepositoryIT {
 
     private static final int TOTAL_CONTENT_SIZE = 50;
 
-    private static final CosmosEntityInformation<Person, String> entityInformation =
+    private final CosmosEntityInformation<Person, String> entityInformation =
         new CosmosEntityInformation<>(Person.class);
-
-    private static CosmosTemplate staticTemplate;
 
     @Autowired
     private CosmosTemplate template;
@@ -61,8 +58,6 @@ public class PageablePersonRepositoryIT {
             return;
         }
         personSet = new HashSet<>();
-        template.createContainerIfNotExists(entityInformation);
-        staticTemplate = template;
 
         //  Create larger documents with size more than 10 kb
         for (int i = 0; i < TOTAL_CONTENT_SIZE; i++) {
@@ -80,11 +75,6 @@ public class PageablePersonRepositoryIT {
             personSet.add(person);
         }
         isSetupDone = true;
-    }
-
-    @AfterClass
-    public static void afterClassCleanup() {
-        staticTemplate.deleteContainer(entityInformation.getContainerName());
     }
 
     //  Cosmos DB can return any number of documents less than or equal to requested page size

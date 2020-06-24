@@ -18,7 +18,6 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.PageableMemoRepository;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,10 +47,8 @@ public class PageableMemoRepositoryIT {
 
     private static final int TOTAL_CONTENT_SIZE = 500;
 
-    private static final CosmosEntityInformation<Memo, String> entityInformation =
+    private final CosmosEntityInformation<Memo, String> entityInformation =
         new CosmosEntityInformation<>(Memo.class);
-
-    private static CosmosTemplate staticTemplate;
 
     @Autowired
     private CosmosTemplate template;
@@ -74,8 +71,6 @@ public class PageableMemoRepositoryIT {
         if (isSetupDone) {
             return;
         }
-        template.createContainerIfNotExists(entityInformation);
-        staticTemplate = template;
         memoSet = new HashSet<>();
         final Random random = new Random();
         final Importance[] importanceValues = Importance.values();
@@ -90,11 +85,6 @@ public class PageableMemoRepositoryIT {
             memoSet.add(memo);
         }
         isSetupDone = true;
-    }
-
-    @AfterClass
-    public static void afterClassCleanup() {
-        staticTemplate.deleteContainer(entityInformation.getContainerName());
     }
 
     @Test

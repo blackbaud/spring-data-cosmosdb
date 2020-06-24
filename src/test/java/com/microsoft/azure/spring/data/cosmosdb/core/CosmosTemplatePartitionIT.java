@@ -19,7 +19,6 @@ import com.microsoft.azure.spring.data.cosmosdb.domain.PartitionPerson;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.support.CosmosEntityInformation;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,11 +86,6 @@ public class CosmosTemplatePartitionIT {
     @After
     public void cleanup() {
         cosmosTemplate.deleteAll(personInfo.getContainerName(), PartitionPerson.class);
-    }
-
-    @AfterClass
-    public static void afterClassCleanup() {
-        cosmosTemplate.deleteContainer(personInfo.getContainerName());
     }
 
     @Test
