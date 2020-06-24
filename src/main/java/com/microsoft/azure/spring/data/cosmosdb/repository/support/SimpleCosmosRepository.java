@@ -22,7 +22,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
@@ -73,9 +72,11 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
                     entity,
                     createKey(information.getPartitionKeyFieldValue(entity)));
         } else {
-            return operation.upsertAndReturnEntity(information.getContainerName(),
+            operation.upsert(information.getContainerName(),
                     entity, createKey(information.getPartitionKeyFieldValue(entity)));
         }
+
+        return entity;
     }
 
     private PartitionKey createKey(String partitionKeyValue) {
@@ -97,13 +98,9 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
     public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
         Assert.notNull(entities, "Iterable entities should not be null");
 
-        final List<S> savedEntities = new ArrayList<>();
-        entities.forEach(entity -> {
-            final S savedEntity = this.save(entity);
-            savedEntities.add(savedEntity);
-        });
+        entities.forEach(this::save);
 
-        return savedEntities;
+        return entities;
     }
 
     /**

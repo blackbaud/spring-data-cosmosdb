@@ -41,6 +41,7 @@ import static com.microsoft.azure.spring.data.cosmosdb.common.TestConstants.*;
 import static com.microsoft.azure.spring.data.cosmosdb.core.query.CriteriaType.IS_EQUAL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestRepositoryConfig.class)
@@ -134,25 +135,28 @@ public class CosmosTemplatePartitionIT {
             null, null);
 
         final String partitionKeyValue = newPerson.getLastName();
-        final PartitionPerson partitionPerson =
-            cosmosTemplate.upsertAndReturnEntity(PartitionPerson.class.getSimpleName(), newPerson
-                , new PartitionKey(partitionKeyValue));
+        cosmosTemplate.upsert(PartitionPerson.class.getSimpleName(), newPerson, new PartitionKey(partitionKeyValue));
 
         final List<PartitionPerson> result = cosmosTemplate.findAll(PartitionPerson.class);
 
         assertThat(result.size()).isEqualTo(2);
-        assertThat(partitionPerson.getFirstName()).isEqualTo(firstName);
+
+        final PartitionPerson person = result.stream()
+                .filter(p -> p.getLastName().equals(partitionKeyValue)).findFirst().get();
+        assertThat(person.getFirstName()).isEqualTo(firstName);
     }
 
     @Test
     public void testUpdatePartition() {
         final PartitionPerson updated = new PartitionPerson(TEST_PERSON.getId(), UPDATED_FIRST_NAME,
                 TEST_PERSON.getLastName(), TEST_PERSON.getHobbies(), TEST_PERSON.getShippingAddresses());
-        final PartitionPerson partitionPerson =
-            cosmosTemplate.upsertAndReturnEntity(PartitionPerson.class.getSimpleName(), updated,
-                new PartitionKey(updated.getLastName()));
+        cosmosTemplate.upsert(PartitionPerson.class.getSimpleName(), updated, new PartitionKey(updated.getLastName()));
 
-        assertEquals(partitionPerson, updated);
+        final List<PartitionPerson> result = cosmosTemplate.findAll(PartitionPerson.class);
+        final PartitionPerson person = result.stream().filter(
+                p -> TEST_PERSON.getId().equals(p.getId())).findFirst().get();
+
+        assertTrue(person.equals(updated));
     }
 
     @Test
@@ -170,7 +174,7 @@ public class CosmosTemplatePartitionIT {
 
         final List<PartitionPerson> result = cosmosTemplate.findAll(PartitionPerson.class);
         assertThat(result.size()).isEqualTo(1);
-        assertEquals(result.get(0), TEST_PERSON_2);
+        assertTrue(result.get(0).equals(TEST_PERSON_2));
     }
 
     @Test
