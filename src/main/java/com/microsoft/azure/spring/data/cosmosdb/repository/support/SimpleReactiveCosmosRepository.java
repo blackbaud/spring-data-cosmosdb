@@ -60,11 +60,6 @@ public class SimpleReactiveCosmosRepository<T, K extends Serializable> implement
     }
 
     @Override
-    public Flux<T> findAll(PartitionKey partitionKey) {
-        return cosmosOperations.findAll(partitionKey, entityInformation.getJavaType());
-    }
-
-    @Override
     public <S extends T> Mono<S> save(S entity) {
 
         Assert.notNull(entity, "Entity must not be null!");
