@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(collection = "#{@dynamicCollectionContainer.getContainerName()}")
+@Document(collection = "#{@dynamicCollectionContainer.getCollectionName()}")
 public class SpELBeanStudent {
     private String id;
     private String firstName;

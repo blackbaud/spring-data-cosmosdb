@@ -11,10 +11,7 @@ import org.springframework.data.mapping.PersistentEntity;
 
 public interface CosmosPersistentEntity<T> extends PersistentEntity<T, CosmosPersistentProperty> {
 
-    @Deprecated
     String getCollection();
-
-    String getContainer();
 
     String getLanguage();
 }

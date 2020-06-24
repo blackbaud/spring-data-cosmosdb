@@ -18,7 +18,7 @@ public class BasicCosmosPersistentEntityUnitTest {
     public void testGetCollection() {
         final BasicCosmosPersistentEntity entity = new BasicCosmosPersistentEntity<Person>(
                 ClassTypeInformation.from(Person.class));
-        assertThat(entity.getContainer()).isEqualTo("");
+        assertThat(entity.getCollection()).isEqualTo("");
     }
 
     @Test

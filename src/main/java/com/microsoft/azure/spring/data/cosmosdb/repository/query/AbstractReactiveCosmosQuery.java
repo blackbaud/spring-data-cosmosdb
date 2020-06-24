@@ -28,11 +28,11 @@ public abstract class AbstractReactiveCosmosQuery implements RepositoryQuery {
 
         final ResultProcessor processor =
             method.getResultProcessor().withDynamicProjection(accessor);
-        final String containerName =
-            ((ReactiveCosmosEntityMetadata) method.getEntityInformation()).getContainerName();
+        final String collection =
+            ((ReactiveCosmosEntityMetadata) method.getEntityInformation()).getCollectionName();
 
         final ReactiveCosmosQueryExecution execution = getExecution(accessor);
-        return execution.execute(query, processor.getReturnedType().getDomainType(), containerName);
+        return execution.execute(query, processor.getReturnedType().getDomainType(), collection);
     }
 
 

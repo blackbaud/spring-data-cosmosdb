@@ -35,12 +35,12 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
     private static final String ETAG = "_etag";
     private Field id;
     private Field partitionKeyField;
-    private String containerName;
+    private String collectionName;
     private Integer requestUnit;
     private Integer timeToLive;
     private IndexingPolicy indexingPolicy;
     private boolean isVersioned;
-    private boolean autoCreateContainer;
+    private boolean autoCreateCollection;
 
     public CosmosEntityInformation(Class<T> domainType) {
         super(domainType);
@@ -48,7 +48,7 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         this.id = getIdField(domainType);
         ReflectionUtils.makeAccessible(this.id);
 
-        this.containerName = getContainerName(domainType);
+        this.collectionName = getCollectionName(domainType);
         this.partitionKeyField = getPartitionKeyField(domainType);
         if (this.partitionKeyField != null) {
             ReflectionUtils.makeAccessible(this.partitionKeyField);
@@ -58,7 +58,7 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         this.timeToLive = getTimeToLive(domainType);
         this.indexingPolicy = getIndexingPolicy(domainType);
         this.isVersioned = getIsVersioned(domainType);
-        this.autoCreateContainer = getIsAutoCreateContainer(domainType);
+        this.autoCreateCollection = getIsAutoCreateCollection(domainType);
     }
 
     @SuppressWarnings("unchecked")
@@ -75,13 +75,8 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return (Class<ID>) id.getType();
     }
 
-    @Deprecated
     public String getCollectionName() {
-        return this.containerName;
-    }
-
-    public String getContainerName() {
-        return this.containerName;
+        return this.collectionName;
     }
 
     public Integer getRequestUnit() {
@@ -114,13 +109,8 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return partitionKeyField == null ? null : (String) ReflectionUtils.getField(partitionKeyField, entity);
     }
 
-    @Deprecated
     public boolean isAutoCreateCollection() {
-        return autoCreateContainer;
-    }
-
-    public boolean isAutoCreateContainer() {
-        return autoCreateContainer;
+        return autoCreateCollection;
     }
 
     private IndexingPolicy getIndexingPolicy(Class<?> domainType) {
@@ -156,16 +146,16 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
         return idField;
     }
 
-    private String getContainerName(Class<?> domainType) {
-        String customContainerName = domainType.getSimpleName();
+    private String getCollectionName(Class<?> domainType) {
+        String customCollectionName = domainType.getSimpleName();
 
         final Document annotation = domainType.getAnnotation(Document.class);
 
         if (annotation != null && annotation.collection() != null && !annotation.collection().isEmpty()) {
-            customContainerName = resolveExpression(annotation.collection());
+            customCollectionName = resolveExpression(annotation.collection());
         }
 
-        return customContainerName;
+        return customCollectionName;
     }
 
     private Field getPartitionKeyField(Class<?> domainType) {
@@ -271,15 +261,15 @@ public class CosmosEntityInformation<T, ID> extends AbstractEntityInformation<T,
                 && findField.isAnnotationPresent(Version.class);
     }
 
-    private boolean getIsAutoCreateContainer(Class<T> domainType) {
+    private boolean getIsAutoCreateCollection(Class<T> domainType) {
         final Document annotation = domainType.getAnnotation(Document.class);
 
-        boolean autoCreateContainer = Constants.DEFAULT_AUTO_CREATE_CONTAINER;
+        boolean autoCreateCollection = Constants.DEFAULT_AUTO_CREATE_COLLECTION;
         if (annotation != null) {
-            autoCreateContainer = annotation.autoCreateCollection();
+            autoCreateCollection = annotation.autoCreateCollection();
         }
 
-        return autoCreateContainer;
+        return autoCreateCollection;
     }
 
 }

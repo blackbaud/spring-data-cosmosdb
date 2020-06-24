@@ -67,17 +67,17 @@ public class CosmosAnnotationIT {
             cosmosTemplate = new CosmosTemplate(cosmosDbFactory, mappingConverter, dbConfig.getDatabase());
             initialized = true;
         }
-        collectionRole = cosmosTemplate.createContainerIfNotExists(roleInfo);
+        collectionRole = cosmosTemplate.createCollectionIfNotExists(roleInfo);
 
-        cosmosTemplate.createContainerIfNotExists(sampleInfo);
+        cosmosTemplate.createCollectionIfNotExists(sampleInfo);
 
-        cosmosTemplate.insert(roleInfo.getContainerName(), TEST_ROLE, null);
+        cosmosTemplate.insert(roleInfo.getCollectionName(), TEST_ROLE, null);
     }
 
     @After
     public void cleanUp() {
-        cosmosTemplate.deleteContainer(roleInfo.getContainerName());
-        cosmosTemplate.deleteContainer(sampleInfo.getContainerName());
+        cosmosTemplate.deleteCollection(roleInfo.getCollectionName());
+        cosmosTemplate.deleteCollection(sampleInfo.getCollectionName());
     }
 
     @Test

@@ -65,7 +65,7 @@ public class ReactiveCourseRepositoryIT {
 
     @PreDestroy
     public void cleanUpCollection() {
-        template.deleteContainer(entityInformation.getContainerName());
+        template.deleteContainer(entityInformation.getCollectionName());
     }
 
     @Before

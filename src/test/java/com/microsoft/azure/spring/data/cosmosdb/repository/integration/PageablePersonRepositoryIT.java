@@ -80,7 +80,7 @@ public class PageablePersonRepositoryIT {
 
     @PreDestroy
     public void cleanUpCollection() {
-        template.deleteContainer(entityInformation.getContainerName());
+        template.deleteCollection(entityInformation.getCollectionName());
     }
 
     //  Cosmos DB can return any number of documents less than or equal to requested page size

@@ -36,8 +36,8 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
         this.operation = applicationContext.getBean(CosmosOperations.class);
         this.information = metadata;
 
-        if (this.information.isAutoCreateContainer()) {
-            createContainerIfNotExists();
+        if (this.information.isAutoCreateCollection()) {
+            createCollectionIfNotExists();
         }
     }
 
@@ -46,13 +46,13 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
         this.operation = dbOperations;
         this.information = metadata;
 
-        if (this.information.isAutoCreateContainer()) {
-            createContainerIfNotExists();
+        if (this.information.isAutoCreateCollection()) {
+            createCollectionIfNotExists();
         }
     }
 
-    private CosmosContainerProperties createContainerIfNotExists() {
-        return this.operation.createContainerIfNotExists(this.information);
+    private CosmosContainerProperties createCollectionIfNotExists() {
+        return this.operation.createCollectionIfNotExists(this.information);
     }
 
     /**
@@ -68,11 +68,11 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
 
         // save entity
         if (information.isNew(entity)) {
-            return operation.insert(information.getContainerName(),
+            return operation.insert(information.getCollectionName(),
                     entity,
                     createKey(information.getPartitionKeyFieldValue(entity)));
         } else {
-            operation.upsert(information.getContainerName(),
+            operation.upsert(information.getCollectionName(),
                     entity, createKey(information.getPartitionKeyFieldValue(entity)));
         }
 
@@ -104,17 +104,17 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
     }
 
     /**
-     * find all entities from one container without configuring partition key value
+     * find all entities from one collection without configuring partition key value
      *
      * @return
      */
     @Override
     public Iterable<T> findAll() {
-        return operation.findAll(information.getContainerName(), information.getJavaType());
+        return operation.findAll(information.getCollectionName(), information.getJavaType());
     }
 
     /**
-     * find entities based on id list from one container without partitions
+     * find entities based on id list from one collection without partitions
      *
      * @param ids
      * @return
@@ -123,7 +123,7 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
     public List<T> findAllById(Iterable<ID> ids) {
         Assert.notNull(ids, "Iterable ids should not be null");
 
-        return operation.findByIds(ids, information.getJavaType(), information.getContainerName());
+        return operation.findByIds(ids, information.getJavaType(), information.getCollectionName());
     }
 
     /**
@@ -140,7 +140,7 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
             return Optional.empty();
         }
 
-        return Optional.ofNullable(operation.findById(information.getContainerName(), id, information.getJavaType()));
+        return Optional.ofNullable(operation.findById(information.getCollectionName(), id, information.getJavaType()));
     }
 
     @Override
@@ -155,13 +155,13 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
     }
 
     /**
-     * return count of documents in one container without partitions
+     * return count of documents in one collection without partitions
      *
      * @return
      */
     @Override
     public long count() {
-        return operation.count(information.getContainerName());
+        return operation.count(information.getCollectionName());
     }
 
     /**
@@ -173,7 +173,7 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
     public void deleteById(ID id) {
         Assert.notNull(id, "id to be deleted should not be null");
 
-        operation.deleteById(information.getContainerName(), id, null);
+        operation.deleteById(information.getCollectionName(), id, null);
     }
 
     @Override
@@ -181,7 +181,7 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
         Assert.notNull(id, "id to be deleted should not be null");
         Assert.notNull(partitionKey, "partitionKey to be deleted should not be null");
 
-        operation.deleteById(information.getContainerName(), id, partitionKey);
+        operation.deleteById(information.getCollectionName(), id, partitionKey);
     }
 
     /**
@@ -195,17 +195,17 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
 
         final String partitionKeyValue = information.getPartitionKeyFieldValue(entity);
 
-        operation.deleteById(information.getContainerName(),
+        operation.deleteById(information.getCollectionName(),
                 information.getId(entity),
                 partitionKeyValue == null ? null : new PartitionKey(partitionKeyValue));
     }
 
     /**
-     * delete all the domains of a container
+     * delete all the domains of a collection
      */
     @Override
     public void deleteAll() {
-        operation.deleteAll(information.getContainerName(), information.getJavaType());
+        operation.deleteAll(information.getCollectionName(), information.getJavaType());
     }
 
     /**
@@ -244,7 +244,7 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
         Assert.notNull(sort, "sort of findAll should not be null");
         final DocumentQuery query = new DocumentQuery(Criteria.getInstance(CriteriaType.ALL)).with(sort);
 
-        return operation.find(query, information.getJavaType(), information.getContainerName());
+        return operation.find(query, information.getJavaType(), information.getCollectionName());
     }
 
     /**
@@ -258,6 +258,6 @@ public class SimpleCosmosRepository<T, ID extends Serializable> implements Cosmo
     public Page<T> findAll(Pageable pageable) {
         Assert.notNull(pageable, "pageable should not be null");
 
-        return operation.findAll(pageable, information.getJavaType(), information.getContainerName());
+        return operation.findAll(pageable, information.getJavaType(), information.getCollectionName());
     }
 }

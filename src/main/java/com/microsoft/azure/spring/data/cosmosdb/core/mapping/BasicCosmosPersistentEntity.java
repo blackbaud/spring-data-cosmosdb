@@ -37,11 +37,6 @@ public class BasicCosmosPersistentEntity<T> extends BasicPersistentEntity<T, Cos
     }
 
     @Override
-    public String getContainer() {
-        return "";
-    }
-
-    @Override
     public String getLanguage() {
         return "";
     }

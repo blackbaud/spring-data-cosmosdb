@@ -48,21 +48,21 @@ public class CosmosEntityInformationUnitTest {
     }
 
     @Test
-    public void testGetContainerName() {
+    public void testGetCollectionName() {
         final CosmosEntityInformation<Person, String> entityInformation =
                 new CosmosEntityInformation<Person, String>(Person.class);
 
-        final String containerName = entityInformation.getContainerName();
-        assertThat(containerName).isEqualTo(Person.class.getSimpleName());
+        final String collectionName = entityInformation.getCollectionName();
+        assertThat(collectionName).isEqualTo(Person.class.getSimpleName());
     }
 
     @Test
-    public void testCustomContainerName() {
+    public void testCustomCollectionName() {
         final CosmosEntityInformation<VersionedVolunteer, String> entityInformation =
                 new CosmosEntityInformation<VersionedVolunteer, String>(VersionedVolunteer.class);
 
-        final String containerName = entityInformation.getContainerName();
-        assertThat(containerName).isEqualTo("testCollection");
+        final String collectionName = entityInformation.getCollectionName();
+        assertThat(collectionName).isEqualTo("testCollection");
     }
 
     @Test

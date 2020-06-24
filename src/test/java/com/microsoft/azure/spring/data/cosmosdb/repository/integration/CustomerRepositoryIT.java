@@ -62,7 +62,7 @@ public class CustomerRepositoryIT {
 
     @PreDestroy
     public void cleanUpCollection() {
-        template.deleteContainer(entityInformation.getContainerName());
+        template.deleteCollection(entityInformation.getCollectionName());
     }
 
     @Before

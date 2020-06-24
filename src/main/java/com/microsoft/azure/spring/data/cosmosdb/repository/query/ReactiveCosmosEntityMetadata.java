@@ -8,8 +8,5 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 import org.springframework.data.repository.core.EntityMetadata;
 
 public interface ReactiveCosmosEntityMetadata<T> extends EntityMetadata {
-    @Deprecated
     String getCollectionName();
-
-    String getContainerName();
 }

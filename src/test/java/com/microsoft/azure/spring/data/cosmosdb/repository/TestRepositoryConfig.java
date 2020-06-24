@@ -77,14 +77,14 @@ public class TestRepositoryConfig extends AbstractCosmosConfiguration {
     }
     
     public class DynamicCollectionContainer {
-        private String containerName;
+        private String collectionName;
 
-        public DynamicCollectionContainer(String containerName) {
-            this.containerName = containerName;
+        public DynamicCollectionContainer(String collectionName) {
+            this.collectionName = collectionName;
         }
         
-        public String getContainerName() {
-            return this.containerName;
+        public String getCollectionName() {
+            return this.collectionName;
         }
     }
 }
