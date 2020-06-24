@@ -13,7 +13,7 @@ import lombok.Data;
 
 import java.util.List;
 
-@Document()
+@Document(ru = "10000")
 @Data
 @AllArgsConstructor
 public class PartitionPerson {

@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -75,6 +76,11 @@ public class PageablePersonRepositoryIT {
             personSet.add(person);
         }
         isSetupDone = true;
+    }
+
+    @PreDestroy
+    public void cleanUpCollection() {
+        template.deleteContainer(entityInformation.getContainerName());
     }
 
     //  Cosmos DB can return any number of documents less than or equal to requested page size

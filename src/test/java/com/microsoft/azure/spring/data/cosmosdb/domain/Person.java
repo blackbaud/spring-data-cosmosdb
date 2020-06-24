@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 
 import org.springframework.data.annotation.Version;
 
-@Document()
+@Document(ru = "10000")
 @Data
 @EqualsAndHashCode(exclude = "_etag")
 @NoArgsConstructor

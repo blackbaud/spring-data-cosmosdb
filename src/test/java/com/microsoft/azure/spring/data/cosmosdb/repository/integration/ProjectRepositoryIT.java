@@ -22,6 +22,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.annotation.PreDestroy;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -82,6 +83,11 @@ public class ProjectRepositoryIT {
 
     @Autowired
     private ProjectRepository repository;
+
+    @PreDestroy
+    public void cleanUpCollection() {
+        template.deleteContainer(entityInformation.getContainerName());
+    }
 
     @Before
     public void setup() {
