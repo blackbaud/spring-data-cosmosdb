@@ -36,10 +36,10 @@ public class ReactiveCosmosQueryCreator extends AbstractQueryCreator<DocumentQue
 
     private String getSubject(@NonNull Part part) {
         String subject = mappingContext.getPersistentPropertyPath(part.getProperty()).toDotPath();
-        final Class<?> domainType = part.getProperty().getOwningType().getType();
+        final Class<?> domainClass = part.getProperty().getOwningType().getType();
 
         @SuppressWarnings("unchecked") final CosmosEntityInformation information =
-                new CosmosEntityInformation(domainType);
+                new CosmosEntityInformation(domainClass);
 
         if (information.getIdField().getName().equals(subject)) {
             subject = Constants.ID_PROPERTY_NAME;
