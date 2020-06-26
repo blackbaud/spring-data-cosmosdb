@@ -13,15 +13,21 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.domain.Persistable;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Document
 @Data
 @Builder
 public class AuditableEntity {
     @Id
-    String id;
+    @Builder.Default
+    String id = UUID.randomUUID().toString();
+    @Version
+    private String _etag;
     @CreatedBy
     private String createdBy;
     @CreatedDate
