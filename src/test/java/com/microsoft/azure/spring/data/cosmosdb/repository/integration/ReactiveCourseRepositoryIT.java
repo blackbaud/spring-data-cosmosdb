@@ -27,6 +27,7 @@ import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -134,6 +135,28 @@ public class ReactiveCourseRepositoryIT {
     public void testFindAll() {
         final Flux<Course> allFlux = repository.findAll();
         StepVerifier.create(allFlux).expectNextCount(4).verifyComplete();
+    }
+
+    @Test
+    public void testFindOneShouldFailIfMultipleResultsReturned() {
+        final Course course = new Course("unusedId", COURSE_1.getName(), COURSE_1.getDepartment());
+        final Mono<Course> saveSecond = repository.save(course);
+        StepVerifier.create(saveSecond).expectNext(course).verifyComplete();
+
+        final Mono<Course> find = repository.findByName(COURSE_1.getName());
+        StepVerifier.create(find).expectError(CosmosDBAccessException.class).verify();
+    }
+
+    @Test
+    public void testShouldFindSingleEntity() {
+        final Mono<Course> find = repository.findByName(COURSE_1.getName());
+        StepVerifier.create(find).expectNext(COURSE_1).expectComplete().verify();
+    }
+
+    @Test
+    public void testShouldReturnEmptyMonoWhenNoResults() {
+        final Mono<Course> find = repository.findByName("unusedName");
+        StepVerifier.create(find).verifyComplete();
     }
 
     @Test
