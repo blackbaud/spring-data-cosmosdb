@@ -64,7 +64,7 @@ public abstract class AbstractReactiveCosmosQuery implements RepositoryQuery {
 
     protected abstract boolean isExistsQuery();
 
-    protected boolean isReactiveSingleResultQuery() {
+    private boolean isReactiveSingleResultQuery() {
         return method.getReactiveWrapper() != null && method.getReactiveWrapper().equals(Mono.class);
     }
 

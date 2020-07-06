@@ -59,9 +59,9 @@ public interface ReactiveCosmosQueryExecution {
                 .buffer(2)
                 .map((vals) -> {
                     if (vals.size() > 1) {
-                        throw new CosmosDBAccessException("Too many results - return type "
+                        throw new CosmosDBAccessException("Too many results - Expected Mono<"
                             + returnedType.getReturnedType() +
-                            " is not of type Iterable but find returned multiple results");
+                            "> but query returned multiple results");
                     }
                     return vals.iterator().next();
                 });
