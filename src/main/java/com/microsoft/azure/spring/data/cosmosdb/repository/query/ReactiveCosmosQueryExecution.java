@@ -7,6 +7,10 @@ package com.microsoft.azure.spring.data.cosmosdb.repository.query;
 
 import com.microsoft.azure.spring.data.cosmosdb.core.ReactiveCosmosOperations;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
+import com.microsoft.azure.spring.data.cosmosdb.exception.CosmosDBAccessException;
+import org.springframework.data.repository.query.ReturnedType;
+
+import java.util.Optional;
 
 public interface ReactiveCosmosQueryExecution {
     Object execute(DocumentQuery query, Class<?> type, String container);
@@ -36,6 +40,31 @@ public interface ReactiveCosmosQueryExecution {
         @Override
         public Object execute(DocumentQuery query, Class<?> type, String container) {
             return operations.find(query, type, container);
+        }
+    }
+
+    final class SingleEntityExecution implements ReactiveCosmosQueryExecution {
+
+        private final ReactiveCosmosOperations operations;
+        private final ReturnedType returnedType;
+
+        public SingleEntityExecution(ReactiveCosmosOperations operations, ReturnedType returnedType) {
+            this.operations = operations;
+            this.returnedType = returnedType;
+        }
+
+        @Override
+        public Object execute(DocumentQuery query, Class<?> type, String container) {
+            return operations.find(query, type, container)
+                .buffer(2)
+                .map((vals) -> {
+                    if (vals.size() > 1) {
+                        throw new CosmosDBAccessException("Too many results - Expected Mono<"
+                            + returnedType.getReturnedType() +
+                            "> but query returned multiple results");
+                    }
+                    return vals.iterator().next();
+                });
         }
     }
 

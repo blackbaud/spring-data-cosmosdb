@@ -9,6 +9,8 @@ import com.microsoft.azure.spring.data.cosmosdb.core.ReactiveCosmosOperations;
 import com.microsoft.azure.spring.data.cosmosdb.core.query.DocumentQuery;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.ReturnedType;
+import reactor.core.publisher.Mono;
 
 public abstract class AbstractReactiveCosmosQuery implements RepositoryQuery {
 
@@ -31,12 +33,13 @@ public abstract class AbstractReactiveCosmosQuery implements RepositoryQuery {
         final String containerName =
             ((ReactiveCosmosEntityMetadata) method.getEntityInformation()).getContainerName();
 
-        final ReactiveCosmosQueryExecution execution = getExecution(accessor);
+        final ReactiveCosmosQueryExecution execution = getExecution(accessor, processor.getReturnedType());
         return execution.execute(query, processor.getReturnedType().getDomainType(), containerName);
     }
 
 
-    private ReactiveCosmosQueryExecution getExecution(ReactiveCosmosParameterAccessor accessor) {
+    private ReactiveCosmosQueryExecution getExecution(ReactiveCosmosParameterAccessor accessor,
+                                                      ReturnedType returnedType) {
         if (isDeleteQuery()) {
             return new ReactiveCosmosQueryExecution.DeleteExecution(operations);
         } else if (method.isPageQuery()) {
@@ -44,6 +47,8 @@ public abstract class AbstractReactiveCosmosQuery implements RepositoryQuery {
                 "db");
         } else if (isExistsQuery()) {
             return new ReactiveCosmosQueryExecution.ExistsExecution(operations);
+        } else if (isReactiveSingleResultQuery()) {
+            return new ReactiveCosmosQueryExecution.SingleEntityExecution(operations, returnedType);
         } else {
             return new ReactiveCosmosQueryExecution.MultiEntityExecution(operations);
         }
@@ -58,5 +63,9 @@ public abstract class AbstractReactiveCosmosQuery implements RepositoryQuery {
     protected abstract boolean isDeleteQuery();
 
     protected abstract boolean isExistsQuery();
+
+    private boolean isReactiveSingleResultQuery() {
+        return method.getReactiveWrapper() != null && method.getReactiveWrapper().equals(Mono.class);
+    }
 
 }
