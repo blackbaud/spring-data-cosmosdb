@@ -21,12 +21,9 @@ import static org.mockito.Mockito.when;
 public class CosmosRepositoryFactoryBeanUnitTest {
     @Mock
     CosmosTemplate dbTemplate;
-    @Mock
-    MappingCosmosConverter converter;
 
     @Test
     public void testCreateRepositoryFactory() {
-        when(dbTemplate.getConverter()).thenReturn(converter);
         final CosmosRepositoryFactoryBean factoryBean =
                 new CosmosRepositoryFactoryBean(PersonRepository.class);
         factoryBean.setCosmosOperations(dbTemplate);

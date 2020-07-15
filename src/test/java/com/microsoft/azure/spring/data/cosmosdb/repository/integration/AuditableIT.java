@@ -10,6 +10,7 @@ import com.microsoft.azure.spring.data.cosmosdb.repository.StubAuditorProvider;
 import com.microsoft.azure.spring.data.cosmosdb.repository.StubDateTimeProvider;
 import com.microsoft.azure.spring.data.cosmosdb.repository.TestRepositoryConfig;
 import com.microsoft.azure.spring.data.cosmosdb.repository.repository.AuditableRepository;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,11 @@ public class AuditableIT {
     private StubDateTimeProvider stubDateTimeProvider;
     @Autowired
     private StubAuditorProvider stubAuditorProvider;
+
+    @After
+    public void cleanup() {
+        this.auditableRepository.deleteAll();
+    }
 
     @Test
     public void testInsertShouldSetAuditableEntries() {

@@ -20,6 +20,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.util.StringUtils;
+import java.util.Arrays;
+import java.util.Collection;
 
 @Configuration
 @PropertySource(value = {"classpath:application.properties"})
@@ -89,4 +91,10 @@ public class TestRepositoryConfig extends AbstractCosmosConfiguration {
         return new StubAuditorProvider();
     }
 
+    @Override
+    protected Collection<String> getMappingBasePackages() {
+        final Package mappingBasePackage = getClass().getPackage();
+        final String entityPackage = "com.microsoft.azure.spring.data.cosmosdb.domain";
+        return Arrays.asList(mappingBasePackage.getName(), entityPackage);
+    }
 }

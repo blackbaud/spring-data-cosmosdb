@@ -12,6 +12,8 @@ import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
 
+import java.util.Set;
+
 
 public class CosmosMappingContext
         extends AbstractMappingContext<BasicCosmosPersistentEntity<?>, CosmosPersistentProperty> {
